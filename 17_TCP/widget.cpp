@@ -8,37 +8,64 @@ Widget::Widget(QWidget *parent) :
 {
     ui->setupUi(this);
     this->setWindowTitle("Server");
-    p_socket = NULL;
 
-    QTcpServer *ptcpServer = new QTcpServer(this);
+
+
+    ptcpServer = new QTcpServer(this);
     ptcpServer->listen(QHostAddress::Any, 8893);
 
-    connect(ptcpServer, &QTcpServer::newConnection,
-            [=]()
-            {
-                p_socket = ptcpServer->nextPendingConnection();
-                QString str_IP = p_socket->peerAddress().toString();
-                int iPort = p_socket->peerPort();
-
-                QString str_tmp = QString("[ip:%1, port:%2, connect success!]").arg(str_IP).arg(iPort);
-
-                ui->textEdit->setText(str_tmp);
-
-                connect(p_socket, &QTcpSocket::readyRead,
-                        [=]()
-                        {
-                            QByteArray byte_tmp = p_socket->readAll();
-                            ui->textEdit->append(byte_tmp);
-
-                        }
-                        );
-            }
-            );
+    connect(ptcpServer, &QTcpServer::newConnection, this, &Widget::DealConnByThread);
 }
 
 Widget::~Widget()
 {
     delete ui;
+    qDebug() << "start destroy widget";
+    if(m_objThread)
+    {
+        m_objThread->quit();
+    }
+    m_objThread->wait();
+    qDebug() << "end destroy widget";
+
+}
+
+void Widget::startObjThread()
+{
+    if(m_objThread)
+    {
+        return;
+    }
+    m_objThread= new QThread();
+    m_obj = new ThreadObject();
+    m_obj->moveToThread(m_objThread);
+    connect(m_objThread,&QThread::finished,m_objThread,&QObject::deleteLater);
+    connect(m_objThread,&QThread::finished,m_obj,&QObject::deleteLater);
+    connect(this,&Widget::startObjThreadWork1,m_obj,&ThreadObject::runSomeBigWork1);
+    connect(this,&Widget::startObjThreadWork2,m_obj,&ThreadObject::runSomeBigWork2);
+    connect(m_obj,&ThreadObject::progress,this,&Widget::progress);
+    connect(m_obj,&ThreadObject::message,this,&Widget::receiveMessage);
+    m_objThread->start();
+}
+
+void Widget::DealConnByThread()
+{
+    p_socket = ptcpServer->nextPendingConnection();
+    QString str_IP = p_socket->peerAddress().toString();
+    int iPort = p_socket->peerPort();
+
+    QString str_tmp = QString("[ip:%1, port:%2, connect success!]").arg(str_IP).arg(iPort);
+
+    ui->textEdit->setText(str_tmp);
+
+    connect(p_socket, &QTcpSocket::readyRead,
+            [=]()
+            {
+                QByteArray byte_tmp = p_socket->readAll();
+                ui->textEdit->append(byte_tmp);
+
+            }
+            );
 }
 
 void Widget::on_pushButton_clicked()
