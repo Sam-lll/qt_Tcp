@@ -1,4 +1,4 @@
-#include "widget.h"
+#include "Serverwidget.h"
 #include "clientwidget.h"
 #include <QApplication>
 

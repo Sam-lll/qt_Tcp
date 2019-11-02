@@ -8,6 +8,7 @@
 #include <limits>
 #include <unistd.h>
 
+
 ThreadObject::ThreadObject(QObject *parent):QObject(parent)
   ,m_runCount(10)
   ,m_runCount2(std::numeric_limits<int>::max())
@@ -24,8 +25,9 @@ void ThreadObject::setRunCount(int count)
     m_runCount = count;
     emit message(QString("%1->%2,thread id:%3").arg(__FUNCTION__).arg(__FILE__).arg((long)QThread::currentThreadId()));
 }
-void ThreadObject::runSomeBigWork1()
+void ThreadObject::DealSubConnect()
 {
+
     {
         QMutexLocker locker(&m_stopMutex);
         m_isStop = false;
@@ -34,13 +36,15 @@ void ThreadObject::runSomeBigWork1()
     QString str = QString("%1->%2,thread id:%3").arg(__FILE__).arg(__FUNCTION__).arg((long)QThread::currentThreadId());
     emit message(str);
     int process = 0;
-    while(1)
+    m_Mutex.lock();
+    while(m_signal.wait(&m_Mutex))
     {
         {
             QMutexLocker locker(&m_stopMutex);
             if(m_isStop)
                 return;
         }
+        m_Mutex.unlock();
         if(m_runCount == count)
         {
             break;
@@ -96,7 +100,8 @@ void ThreadObject::runSomeBigWork2()
 }
 void ThreadObject::stop()
 {
-    QMutexLocker locker(&m_stopMutex);
-    emit message(QString("%1->%2,thread id:%3").arg(__FUNCTION__).arg(__FILE__).arg((long)QThread::currentThreadId()));
-    m_isStop = true;
+    //QMutexLocker locker(&m_stopMutex);
+    m_signal.wakeAll();
+    //emit message(QString("%1->%2,thread id:%3").arg(__FUNCTION__).arg(__FILE__).arg((long)QThread::currentThreadId()));
+    //m_isStop = true;
 }

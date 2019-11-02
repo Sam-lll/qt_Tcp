@@ -1,4 +1,4 @@
-#include "widget.h"
+#include "Serverwidget.h"
 #include "ui_widget.h"
 
 
@@ -41,11 +41,26 @@ void Widget::startObjThread()
     m_obj->moveToThread(m_objThread);
     connect(m_objThread,&QThread::finished,m_objThread,&QObject::deleteLater);
     connect(m_objThread,&QThread::finished,m_obj,&QObject::deleteLater);
-    connect(this,&Widget::startObjThreadWork1,m_obj,&ThreadObject::runSomeBigWork1);
+    connect(this,&Widget::startObjThreadWork1,m_obj,&ThreadObject::DealSubConnect);
     connect(this,&Widget::startObjThreadWork2,m_obj,&ThreadObject::runSomeBigWork2);
     connect(m_obj,&ThreadObject::progress,this,&Widget::progress);
     connect(m_obj,&ThreadObject::message,this,&Widget::receiveMessage);
     m_objThread->start();
+}
+
+void Widget::progress(int val)
+{
+    //do sth.
+}
+
+void Widget::receiveMessage(const QString &str)
+{
+    //do sth.
+}
+
+void Widget::heartTimeOut()
+{
+    //do sth.
 }
 
 void Widget::DealConnByThread()
@@ -66,18 +81,31 @@ void Widget::DealConnByThread()
 
             }
             );
-}
 
-void Widget::on_pushButton_clicked()
-{
-    if(!p_socket)
-        return;
-
-    p_socket->write(ui->textEdit_2->toPlainText().toStdString().c_str());
 
 }
 
 void Widget::on_pushButton_2_clicked()
 {
     p_socket->connected();
+}
+
+void Widget::on_pushButtonSnd_clicked()
+{
+    if(!p_socket)
+        return;
+
+    p_socket->write(ui->textEdit_2->toPlainText().toStdString().c_str());
+
+    if(!m_objThread)
+        {
+            startObjThread();
+        }
+        emit startObjThreadWork1();//主线程通过信号换起子线程的槽函数
+        ui->textEdit->append("start Obj Thread work 1");
+}
+
+void Widget::on_pushButtonClose_clicked()
+{
+    m_obj->stop();
 }

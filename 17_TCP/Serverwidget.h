@@ -26,21 +26,24 @@ signals:
     void startObjThreadWork2();
 
 private slots:
-    void on_pushButton_clicked();
 
     void on_pushButton_2_clicked();
 
     void progress(int val);
     void receiveMessage(const QString& str);
     void heartTimeOut();
+    void on_pushButtonSnd_clicked();
+
+    void on_pushButtonClose_clicked();
+
 private:
     void startObjThread();
 private:
     Ui::Widget *ui;
     QTcpSocket *p_socket = NULL;
     QTcpServer *ptcpServer = NULL;
-    ThreadObject* m_obj;
-    QThread* m_objThread;
+    ThreadObject* m_obj = NULL;
+    QThread* m_objThread = NULL;
 };
 
 #endif // WIDGET_H

@@ -25,14 +25,14 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
         main.cpp \
-        widget.cpp \
     clientwidget.cpp \
-    threadobject.cpp
+    threadobject.cpp \
+    Serverwidget.cpp
 
 HEADERS += \
-        widget.h \
     clientwidget.h \
-    threadobject.h
+    threadobject.h \
+    Serverwidget.h
 
 FORMS += \
         widget.ui \
