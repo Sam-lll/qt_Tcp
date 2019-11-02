@@ -1,6 +1,4 @@
 #include "threadobject.h"
-
-#include "threadobject.h"
 #include <QThread>
 #include <QDebug>
 #include <QMutexLocker>

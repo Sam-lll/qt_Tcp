@@ -2,9 +2,9 @@
 #include "ui_widget.h"
 
 
-Widget::Widget(QWidget *parent) :
+ServerWidget::ServerWidget(QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::Widget)
+    ui(new Ui::ServerWidget)
 {
     ui->setupUi(this);
     this->setWindowTitle("Server");
@@ -14,23 +14,23 @@ Widget::Widget(QWidget *parent) :
     ptcpServer = new QTcpServer(this);
     ptcpServer->listen(QHostAddress::Any, 8893);
 
-    connect(ptcpServer, &QTcpServer::newConnection, this, &Widget::DealConnByThread);
+    connect(ptcpServer, &QTcpServer::newConnection, this, &ServerWidget::DealConnByThread);
 }
 
-Widget::~Widget()
+ServerWidget::~ServerWidget()
 {
     delete ui;
-    qDebug() << "start destroy widget";
+    qDebug() << "start destroy ServerWidget";
     if(m_objThread)
     {
         m_objThread->quit();
     }
     m_objThread->wait();
-    qDebug() << "end destroy widget";
+    qDebug() << "end destroy ServerWidget";
 
 }
 
-void Widget::startObjThread()
+void ServerWidget::startObjThread()
 {
     if(m_objThread)
     {
@@ -41,29 +41,29 @@ void Widget::startObjThread()
     m_obj->moveToThread(m_objThread);
     connect(m_objThread,&QThread::finished,m_objThread,&QObject::deleteLater);
     connect(m_objThread,&QThread::finished,m_obj,&QObject::deleteLater);
-    connect(this,&Widget::startObjThreadWork1,m_obj,&ThreadObject::DealSubConnect);
-    connect(this,&Widget::startObjThreadWork2,m_obj,&ThreadObject::runSomeBigWork2);
-    connect(m_obj,&ThreadObject::progress,this,&Widget::progress);
-    connect(m_obj,&ThreadObject::message,this,&Widget::receiveMessage);
+    connect(this,&ServerWidget::startObjThreadWork1,m_obj,&ThreadObject::DealSubConnect);
+    connect(this,&ServerWidget::startObjThreadWork2,m_obj,&ThreadObject::runSomeBigWork2);
+    connect(m_obj,&ThreadObject::progress,this,&ServerWidget::progress);
+    connect(m_obj,&ThreadObject::message,this,&ServerWidget::receiveMessage);
     m_objThread->start();
 }
 
-void Widget::progress(int val)
+void ServerWidget::progress(int val)
 {
     //do sth.
 }
 
-void Widget::receiveMessage(const QString &str)
+void ServerWidget::receiveMessage(const QString &str)
 {
     //do sth.
 }
 
-void Widget::heartTimeOut()
+void ServerWidget::heartTimeOut()
 {
     //do sth.
 }
 
-void Widget::DealConnByThread()
+void ServerWidget::DealConnByThread()
 {
     p_socket = ptcpServer->nextPendingConnection();
     QString str_IP = p_socket->peerAddress().toString();
@@ -85,12 +85,12 @@ void Widget::DealConnByThread()
 
 }
 
-void Widget::on_pushButton_2_clicked()
+void ServerWidget::on_pushButton_2_clicked()
 {
     p_socket->connected();
 }
 
-void Widget::on_pushButtonSnd_clicked()
+void ServerWidget::on_pushButtonSnd_clicked()
 {
     if(!p_socket)
         return;
@@ -105,7 +105,7 @@ void Widget::on_pushButtonSnd_clicked()
         ui->textEdit->append("start Obj Thread work 1");
 }
 
-void Widget::on_pushButtonClose_clicked()
+void ServerWidget::on_pushButtonClose_clicked()
 {
     m_obj->stop();
 }

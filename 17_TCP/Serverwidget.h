@@ -10,16 +10,16 @@
 class ThreadObject;
 
 namespace Ui {
-class Widget;
+class ServerWidget;
 }
 
-class Widget : public QWidget
+class ServerWidget : public QWidget
 {
     Q_OBJECT
 
 public:
-    explicit Widget(QWidget *parent = 0);
-    ~Widget();
+    explicit ServerWidget(QWidget *parent = 0);
+    ~ServerWidget();
     void DealConnByThread();
 signals:
     void startObjThreadWork1();
@@ -39,7 +39,7 @@ private slots:
 private:
     void startObjThread();
 private:
-    Ui::Widget *ui;
+    Ui::ServerWidget *ui;
     QTcpSocket *p_socket = NULL;
     QTcpServer *ptcpServer = NULL;
     ThreadObject* m_obj = NULL;
