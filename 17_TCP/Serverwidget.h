@@ -21,6 +21,7 @@ public:
     explicit ServerWidget(QWidget *parent = 0);
     ~ServerWidget();
     void DealConnByThread();
+    void displayMessage();
 signals:
     void startObjThreadWork1();
     void startObjThreadWork2();
@@ -44,6 +45,7 @@ private:
     QTcpServer *ptcpServer = NULL;
     ThreadObject* m_obj = NULL;
     QThread* m_objThread = NULL;
+    QMutex m_Mutex;
 };
 
 #endif // WIDGET_H

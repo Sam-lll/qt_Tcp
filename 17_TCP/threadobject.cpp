@@ -6,12 +6,15 @@
 #include <limits>
 #include <unistd.h>
 
-
 ThreadObject::ThreadObject(QObject *parent):QObject(parent)
   ,m_runCount(10)
   ,m_runCount2(std::numeric_limits<int>::max())
   ,m_isStop(true)
 {
+    ptcpServer = new QTcpServer(this);
+    ptcpServer->listen(QHostAddress::Any, 8893);
+
+    connect(ptcpServer, &QTcpServer::newConnection, this, &ThreadObject::processClientConnection);
 }
 ThreadObject::~ThreadObject()
 {
@@ -23,19 +26,15 @@ void ThreadObject::setRunCount(int count)
     m_runCount = count;
     emit message(QString("%1->%2,thread id:%3").arg(__FUNCTION__).arg(__FILE__).arg((long)QThread::currentThreadId()));
 }
-void ThreadObject::DealSubConnect()
+void ThreadObject::connectStat()
 {
-
     {
         QMutexLocker locker(&m_stopMutex);
         m_isStop = false;
     }
-    int count = 0;
-    QString str = QString("%1->%2,thread id:%3").arg(__FILE__).arg(__FUNCTION__).arg((long)QThread::currentThreadId());
-    emit message(str);
-    int process = 0;
+
     m_Mutex.lock();
-    while(m_signal.wait(&m_Mutex))
+    while(!m_signal.wait(&m_Mutex, 10000))
     {
         {
             QMutexLocker locker(&m_stopMutex);
@@ -43,19 +42,33 @@ void ThreadObject::DealSubConnect()
                 return;
         }
         m_Mutex.unlock();
-        if(m_runCount == count)
-        {
-            break;
-        }
-        sleep(1);
-        int pro = ((float)count / m_runCount) * 100;
-        if(pro != process)
-        {
-            process = pro;
-            emit progress(((float)count / m_runCount) * 100);
-            emit message(QString("Object::run times:%1,m_runCount:%2").arg(count).arg(m_runCount2));
-        }
-        ++count;
+    }
+}
+
+void ThreadObject::processClientConnection()
+{
+    QMutexLocker locker(&m_Mutex);
+    QWaitCondition signal;
+    QTcpSocket *pSocket = ptcpServer->nextPendingConnection();
+    m_vecSocket.push_back(pSocket);
+    QString str_IP = p_socket->peerAddress().toString();
+    int iPort = pSocket->peerPort();
+
+    QString str_tmp = QString("[ip:%1, port:%2, connect success!]").arg(str_IP).arg(iPort);
+
+    //Ui::ui->textEdit->setText(str_tmp);
+    //
+    //connect(p_socket, &QTcpSocket::readyRead,
+    //        [=]()
+    //        {
+    //            QByteArray byte_tmp = p_socket->readAll();
+    //            ui->textEdit->append(byte_tmp);
+    //        }
+    //        );
+    while (pSocket->state() != QAbstractSocket::ClosingState) {
+        qDebug() << pSocket->state();
+        signal.wait(&m_Mutex, 10000);
+
     }
 }
 void ThreadObject::runSomeBigWork2()

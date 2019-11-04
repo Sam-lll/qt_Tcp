@@ -9,12 +9,10 @@ ServerWidget::ServerWidget(QWidget *parent) :
     ui->setupUi(this);
     this->setWindowTitle("Server");
 
-
-
-    ptcpServer = new QTcpServer(this);
-    ptcpServer->listen(QHostAddress::Any, 8893);
-
-    connect(ptcpServer, &QTcpServer::newConnection, this, &ServerWidget::DealConnByThread);
+    //ptcpServer = new QTcpServer(this);
+    //ptcpServer->listen(QHostAddress::Any, 8893);
+    //
+    //connect(ptcpServer, &QTcpServer::newConnection, this, &ServerWidget::DealConnByThread);
 }
 
 ServerWidget::~ServerWidget()
@@ -41,7 +39,7 @@ void ServerWidget::startObjThread()
     m_obj->moveToThread(m_objThread);
     connect(m_objThread,&QThread::finished,m_objThread,&QObject::deleteLater);
     connect(m_objThread,&QThread::finished,m_obj,&QObject::deleteLater);
-    connect(this,&ServerWidget::startObjThreadWork1,m_obj,&ThreadObject::DealSubConnect);
+    connect(this,&ServerWidget::startObjThreadWork1,m_obj,&ThreadObject::connectStat);
     connect(this,&ServerWidget::startObjThreadWork2,m_obj,&ThreadObject::runSomeBigWork2);
     connect(m_obj,&ThreadObject::progress,this,&ServerWidget::progress);
     connect(m_obj,&ThreadObject::message,this,&ServerWidget::receiveMessage);
@@ -65,13 +63,12 @@ void ServerWidget::heartTimeOut()
 
 void ServerWidget::DealConnByThread()
 {
-    p_socket = ptcpServer->nextPendingConnection();
+    QMutexLocker locker(&m_Mutex);
+    QTcpSocket *p_socket = ptcpServer->nextPendingConnection();
     QString str_IP = p_socket->peerAddress().toString();
     int iPort = p_socket->peerPort();
 
-    QString str_tmp = QString("[ip:%1, port:%2, connect success!]").arg(str_IP).arg(iPort);
-
-    ui->textEdit->setText(str_tmp);
+    ui->textEdit->append(QString("[ip:%1, port:%2, connect success!]").arg(str_IP).arg(iPort));
 
     connect(p_socket, &QTcpSocket::readyRead,
             [=]()
@@ -82,6 +79,12 @@ void ServerWidget::DealConnByThread()
             }
             );
 
+
+}
+
+void ServerWidget::displayMessage()
+{
+    ;
 
 }
 

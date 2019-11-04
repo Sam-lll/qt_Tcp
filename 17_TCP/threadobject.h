@@ -4,6 +4,11 @@
 #include <QObject>
 #include <QMutex>
 #include <QWaitCondition>
+#include <QTcpServer>
+#include <QTcpSocket>
+#include <vector>
+
+using namespace std;
 
 //QMutex mutex;
 //QWaitCondition signal;
@@ -20,7 +25,8 @@ signals:
     void message(const QString& info);
     void progress(int present);
 public slots:
-    void DealSubConnect();
+    void connectStat();
+    void processClientConnection();
     void runSomeBigWork2();
 private:
     int m_runCount;
@@ -29,6 +35,9 @@ private:
     QMutex m_stopMutex;
     QMutex m_Mutex;
     QWaitCondition m_signal;
+    QTcpSocket *p_socket = NULL;
+    QTcpServer *ptcpServer = NULL;
+    std::vector<QTcpSocket*> m_vecSocket;
 };
 
 #endif // THREADOBJECT_H
